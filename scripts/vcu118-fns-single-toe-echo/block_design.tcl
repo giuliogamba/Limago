@@ -688,7 +688,7 @@ proc create_hier_cell_TCP { parentCell nameHier } {
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 TCP
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 ddr4_ref_clk
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_lup_req1
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_lup_req
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_upd_req
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_session_lup_rsp
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_session_upd_rsp
@@ -882,11 +882,7 @@ proc create_hier_cell_TCP { parentCell nameHier } {
   set toe_0 [ create_bd_cell -type ip -vlnv xilinx.com:hls:toe:1.0 toe_0 ]
 
   # Create interface connections
-  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins m_axis_session_lup_req1] [get_bd_intf_pins toe_0/m_axis_session_lup_req_V]
   connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins C0_DDR4] [get_bd_intf_pins memory_controller_c0/C0_DDR4]
-  connect_bd_intf_net -intf_net Conn3 [get_bd_intf_pins s_axis_session_lup_rsp] [get_bd_intf_pins toe_0/s_axis_session_lup_rsp_V]
-  connect_bd_intf_net -intf_net Conn4 [get_bd_intf_pins m_axis_session_upd_req] [get_bd_intf_pins toe_0/m_axis_session_upd_req_V]
-  connect_bd_intf_net -intf_net Conn5 [get_bd_intf_pins s_axis_session_upd_rsp] [get_bd_intf_pins toe_0/s_axis_session_upd_rsp_V]
   connect_bd_intf_net -intf_net TCP_1 [get_bd_intf_pins TCP] [get_bd_intf_pins cycle_limiter_0/S_AXIS]
   connect_bd_intf_net -intf_net axi_interconnect_0_M00_AXI [get_bd_intf_pins axi_interconnect_0/M00_AXI] [get_bd_intf_pins memory_controller_c0/C0_DDR4_S_AXI]
   connect_bd_intf_net -intf_net axi_register_slice_0_M_AXI [get_bd_intf_pins axi_interconnect_0/S00_AXI] [get_bd_intf_pins axi_register_slice_0/M_AXI]
@@ -905,7 +901,11 @@ proc create_hier_cell_TCP { parentCell nameHier } {
   connect_bd_intf_net -intf_net echo_server_applicat_0_m_OpenConnRequest_V [get_bd_intf_pins echo_server_applicat_0/m_OpenConnRequest_V] [get_bd_intf_pins toe_0/s_OpenConnRequest_V]
   connect_bd_intf_net -intf_net echo_server_applicat_0_m_TxDataRequest_V [get_bd_intf_pins echo_server_applicat_0/m_TxDataRequest_V] [get_bd_intf_pins toe_0/s_TxDataRequest_V]
   connect_bd_intf_net -intf_net echo_server_applicat_0_m_TxPayload [get_bd_intf_pins echo_server_applicat_0/m_TxPayload] [get_bd_intf_pins toe_0/s_TxPayload]
+  connect_bd_intf_net -intf_net m_axis_session_lup_req [get_bd_intf_pins m_axis_session_lup_req] [get_bd_intf_pins toe_0/m_axis_session_lup_req_V]
+  connect_bd_intf_net -intf_net m_axis_session_upd_req [get_bd_intf_pins m_axis_session_upd_req] [get_bd_intf_pins toe_0/m_axis_session_upd_req_V]
   connect_bd_intf_net -intf_net register_TCPin_bandwidth_M_AXIS [get_bd_intf_pins register_TCPin_bandwidth/M_AXIS] [get_bd_intf_pins toe_0/s_axis_tcp_data]
+  connect_bd_intf_net -intf_net s_axis_session_lup_rsp [get_bd_intf_pins s_axis_session_lup_rsp] [get_bd_intf_pins toe_0/s_axis_session_lup_rsp_V]
+  connect_bd_intf_net -intf_net s_axis_session_upd_rsp [get_bd_intf_pins s_axis_session_upd_rsp] [get_bd_intf_pins toe_0/s_axis_session_upd_rsp_V]
   connect_bd_intf_net -intf_net tcp_checksum_RX_M_AXIS [get_bd_intf_pins tcp_checksum_RX/M_AXIS] [get_bd_intf_pins toe_0/s_axis_rx_pseudo_packet_checksum_V_V]
   connect_bd_intf_net -intf_net tcp_checksum_TX_M_AXIS [get_bd_intf_pins tcp_checksum_TX/M_AXIS] [get_bd_intf_pins toe_0/s_axis_tx_pseudo_packet_checksum_V_V]
   connect_bd_intf_net -intf_net toe_0_m_App2RxEngResponseID_V_V [get_bd_intf_pins echo_server_applicat_0/s_App2RxEngResponseID_V_V] [get_bd_intf_pins toe_0/m_App2RxEngResponseID_V_V]
@@ -1108,8 +1108,10 @@ proc create_hier_cell_ARP { parentCell nameHier } {
   # Create pins
   create_bd_pin -dir I -type clk cmac_rx_clk
   create_bd_pin -dir O -from 191 -to 0 debug_slot
+  create_bd_pin -dir I -from 31 -to 0 -type data gatewayIP
   create_bd_pin -dir I -from 31 -to 0 -type data myIpAddress_V
   create_bd_pin -dir I -from 47 -to 0 -type data myMacAddress_V
+  create_bd_pin -dir I -from 31 -to 0 -type data networkMask
   create_bd_pin -dir I -type rst p_arst_n_rx_322
   create_bd_pin -dir I -type rst user_rst_n
 
@@ -1172,6 +1174,8 @@ proc create_hier_cell_ARP { parentCell nameHier } {
   connect_bd_net -net cmac_tx_clk_1 [get_bd_pins cmac_rx_clk] [get_bd_pins arp_in_slice/aclk] [get_bd_pins arp_out_slice/aclk] [get_bd_pins arp_server_0/ap_clk] [get_bd_pins bandwith_reg_0/S_AXI_ACLK]
   connect_bd_net -net fix_settings_0_my_ip_address [get_bd_pins myIpAddress_V] [get_bd_pins arp_server_0/myIpAddress_V]
   connect_bd_net -net fix_settings_0_my_mac [get_bd_pins myMacAddress_V] [get_bd_pins arp_server_0/myMacAddress_V]
+  connect_bd_net -net gatewayIP_V_1 [get_bd_pins gatewayIP] [get_bd_pins arp_server_0/gatewayIP_V]
+  connect_bd_net -net networkMask_V_1 [get_bd_pins networkMask] [get_bd_pins arp_server_0/networkMask_V]
   connect_bd_net -net p_arst_n_tx_322_1 [get_bd_pins p_arst_n_rx_322] [get_bd_pins arp_in_slice/aresetn] [get_bd_pins arp_out_slice/aresetn] [get_bd_pins arp_server_0/ap_rst_n] [get_bd_pins bandwith_reg_0/S_AXI_ARESETN]
   connect_bd_net -net reg_debug_0_user_rst_n [get_bd_pins user_rst_n] [get_bd_pins bandwith_reg_0/user_rst_n]
 
@@ -1293,7 +1297,7 @@ proc create_hier_cell_interface_0_handler { parentCell nameHier } {
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 RX_TRAFFIC
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 TX_TRAFFIC
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:diff_clock_rtl:1.0 ddr4_ref_clk
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_lup_req1
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_lup_req
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 m_axis_session_upd_req
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_session_lup_rsp
   create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 s_axis_session_upd_rsp
@@ -1351,10 +1355,6 @@ proc create_hier_cell_interface_0_handler { parentCell nameHier } {
   # Create interface connections
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins C0_DDR4] [get_bd_intf_pins TCP/C0_DDR4]
   connect_bd_intf_net -intf_net Conn2 [get_bd_intf_pins ddr4_ref_clk] [get_bd_intf_pins TCP/ddr4_ref_clk]
-  connect_bd_intf_net -intf_net Conn4 [get_bd_intf_pins s_axis_session_lup_rsp] [get_bd_intf_pins TCP/s_axis_session_lup_rsp]
-  connect_bd_intf_net -intf_net Conn5 [get_bd_intf_pins m_axis_session_upd_req] [get_bd_intf_pins TCP/m_axis_session_upd_req]
-  connect_bd_intf_net -intf_net Conn6 [get_bd_intf_pins s_axis_session_upd_rsp] [get_bd_intf_pins TCP/s_axis_session_upd_rsp]
-  connect_bd_intf_net -intf_net Conn7 [get_bd_intf_pins m_axis_session_lup_req1] [get_bd_intf_pins TCP/m_axis_session_lup_req1]
   connect_bd_intf_net -intf_net ICMP_HANDLER_M_AXIS [get_bd_intf_pins ICMP_HANDLER/M_AXIS] [get_bd_intf_pins Traffic_Agregation/ICMP]
   connect_bd_intf_net -intf_net RX_DEBUG_1 [get_bd_intf_pins RX_DEBUG] [get_bd_intf_pins performance_debug_reg_0/S_AXI]
   connect_bd_intf_net -intf_net S_AXI_1 [get_bd_intf_pins IF_SETTINGS] [get_bd_intf_pins interface_settings_0/S_AXI]
@@ -1363,6 +1363,10 @@ proc create_hier_cell_interface_0_handler { parentCell nameHier } {
   connect_bd_intf_net -intf_net arp_out_slice_M_AXIS [get_bd_intf_pins ARP/M_AXIS] [get_bd_intf_pins Traffic_Agregation/ARP]
   connect_bd_intf_net -intf_net arp_server_0_macIpEncode_rsp_V [get_bd_intf_pins ARP/macIpEncode_rsp] [get_bd_intf_pins Traffic_Agregation/arpTableReplay_V]
   connect_bd_intf_net -intf_net ethernet_header_inserter_0_arpTableRequest_V_V [get_bd_intf_pins ARP/macIpEncode_req] [get_bd_intf_pins Traffic_Agregation/arpTableRequest_V_V]
+  connect_bd_intf_net -intf_net m_axis_session_lup_req [get_bd_intf_pins m_axis_session_lup_req] [get_bd_intf_pins TCP/m_axis_session_lup_req]
+  connect_bd_intf_net -intf_net m_axis_session_upd_req [get_bd_intf_pins m_axis_session_upd_req] [get_bd_intf_pins TCP/m_axis_session_upd_req]
+  connect_bd_intf_net -intf_net s_axis_session_lup_rsp [get_bd_intf_pins s_axis_session_lup_rsp] [get_bd_intf_pins TCP/s_axis_session_lup_rsp]
+  connect_bd_intf_net -intf_net s_axis_session_upd_rsp [get_bd_intf_pins s_axis_session_upd_rsp] [get_bd_intf_pins TCP/s_axis_session_upd_rsp]
   connect_bd_intf_net -intf_net traffic_generator_LBUS2AXI [get_bd_intf_pins RX_TRAFFIC] [get_bd_intf_pins Traffic_Identification/S_AXIS]
   connect_bd_intf_net -intf_net traffic_splitter_M00_AXIS [get_bd_intf_pins ARP/S_AXIS] [get_bd_intf_pins Traffic_Identification/ARP]
   connect_bd_intf_net -intf_net traffic_splitter_M01_AXIS [get_bd_intf_pins ICMP_HANDLER/ICMP_IN] [get_bd_intf_pins Traffic_Identification/ICMP]
@@ -1382,8 +1386,8 @@ proc create_hier_cell_interface_0_handler { parentCell nameHier } {
   connect_bd_net -net cmac_tx_clk_1 [get_bd_pins cmac_if0_tx_clk] [get_bd_pins Traffic_Agregation/cmac_tx_clk]
   connect_bd_net -net fix_settings_0_my_ip_address [get_bd_pins ARP/myIpAddress_V] [get_bd_pins ICMP_HANDLER/myIpAddress_V] [get_bd_pins TCP/myIpAddress_V] [get_bd_pins interface_settings_0/my_ip_address]
   connect_bd_net -net fix_settings_0_my_mac [get_bd_pins ARP/myMacAddress_V] [get_bd_pins Traffic_Agregation/myMacAddress_V] [get_bd_pins interface_settings_0/my_mac]
-  connect_bd_net -net interface_settings_0_my_gateway [get_bd_pins Traffic_Agregation/regDefaultGateway_V] [get_bd_pins interface_settings_0/my_gateway]
-  connect_bd_net -net interface_settings_0_my_ip_subnet_mask [get_bd_pins Traffic_Agregation/regSubNetMask_V] [get_bd_pins interface_settings_0/my_ip_subnet_mask]
+  connect_bd_net -net interface_settings_0_my_gateway [get_bd_pins ARP/gatewayIP] [get_bd_pins Traffic_Agregation/regDefaultGateway_V] [get_bd_pins interface_settings_0/my_gateway]
+  connect_bd_net -net interface_settings_0_my_ip_subnet_mask [get_bd_pins ARP/networkMask] [get_bd_pins Traffic_Agregation/regSubNetMask_V] [get_bd_pins interface_settings_0/my_ip_subnet_mask]
   connect_bd_net -net p_arst_n_322_1 [get_bd_pins p_arst_n_rx_322] [get_bd_pins ARP/p_arst_n_rx_322] [get_bd_pins ICMP_HANDLER/p_arst_n_rx_322] [get_bd_pins TCP/p_arst_n_rx_322] [get_bd_pins Traffic_Agregation/p_arst_n_rx_322] [get_bd_pins Traffic_Identification/p_arst_n_rx_322] [get_bd_pins interface_settings_0/S_AXI_ARESETN] [get_bd_pins performance_debug_reg_0/S_AXI_ARESETN]
   connect_bd_net -net p_arst_n_tx_322_1 [get_bd_pins p_arst_n_tx_322] [get_bd_pins Traffic_Agregation/p_arst_n_tx_322]
   connect_bd_net -net reg_debug_0_user_rst_n_1 [get_bd_pins ARP/user_rst_n] [get_bd_pins ICMP_HANDLER/user_rst_n] [get_bd_pins TCP/user_rst_n] [get_bd_pins Traffic_Agregation/user_rst_n] [get_bd_pins Traffic_Identification/user_rst_n] [get_bd_pins performance_debug_reg_0/user_rst_n]
@@ -1825,7 +1829,7 @@ proc create_root_design { parentCell } {
   connect_bd_intf_net -intf_net cmac_slice_M_AXIS [get_bd_intf_pins Interfaces/TX_Traffic_0] [get_bd_intf_pins interface_0_handler/TX_TRAFFIC]
   connect_bd_intf_net -intf_net gt_ref_clk_0_1 [get_bd_intf_ports gt_if0_ref_clk] [get_bd_intf_pins Interfaces/gt_if0_ref_clk]
   connect_bd_intf_net -intf_net gt_rx_0_1 [get_bd_intf_ports gt_if0_rx] [get_bd_intf_pins Interfaces/gt_if0_rx]
-  connect_bd_intf_net -intf_net interface_0_handler_m_axis_session_lup_req1 [get_bd_intf_ports m_axis_session_lup_req] [get_bd_intf_pins interface_0_handler/m_axis_session_lup_req1]
+  connect_bd_intf_net -intf_net interface_0_handler_m_axis_session_lup_req1 [get_bd_intf_ports m_axis_session_lup_req] [get_bd_intf_pins interface_0_handler/m_axis_session_lup_req]
   connect_bd_intf_net -intf_net interface_0_handler_m_axis_session_upd_req_V_0 [get_bd_intf_ports m_axis_session_upd_req] [get_bd_intf_pins interface_0_handler/m_axis_session_upd_req]
   connect_bd_intf_net -intf_net s_axis_session_lup_rsp_V_0_1 [get_bd_intf_ports s_axis_session_lup_rsp] [get_bd_intf_pins interface_0_handler/s_axis_session_lup_rsp]
   connect_bd_intf_net -intf_net s_axis_session_upd_rsp_V_0_1 [get_bd_intf_ports s_axis_session_upd_rsp] [get_bd_intf_pins interface_0_handler/s_axis_session_upd_rsp]
